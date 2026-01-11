@@ -1,0 +1,36 @@
+[Unit]
+Description=SmartPark Edge Node Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/smartpark
+Environment=PATH=/home/pi/smartpark/venv/bin:/usr/local/bin:/usr/bin
+ExecStart=/home/pi/smartpark/venv/bin/python main.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/home/pi/smartpark /var/log/smartpark
+
+# Watchdog settings
+WatchdogSec=60
+NotifyAccess=main
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=80%
+
+# Restart behavior
+RestartPreventExitStatus=0
+SuccessExitStatus=0
+
+[Install]
+WantedBy=multi-user.target

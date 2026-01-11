@@ -1,0 +1,4 @@
+# This directory holds ML model weights
+# The YOLOv8 model (yolov8l.pt) will be downloaded automatically on first run
+# Or you can manually place it here:
+#   - yolov8l.pt (YOLOv8-large weights)

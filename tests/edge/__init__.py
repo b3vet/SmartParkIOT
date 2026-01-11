@@ -1,0 +1,3 @@
+"""
+Edge node tests.
+"""

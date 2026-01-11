@@ -1,0 +1,22 @@
+# SmartPark Edge Node Dependencies
+
+# Camera interface
+picamera2>=0.3.12
+
+# Image processing
+Pillow>=10.0.0
+
+# MQTT client
+paho-mqtt>=1.6.1
+
+# HTTP client for frame uploads
+requests>=2.31.0
+
+# System metrics
+psutil>=5.9.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Task scheduling (optional)
+schedule>=1.2.0

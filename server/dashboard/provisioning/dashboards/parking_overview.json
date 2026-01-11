@@ -1,0 +1,247 @@
+{
+  "dashboard": {
+    "title": "FASS SmartPark - Parking Overview",
+    "uid": "fass-parking-overview",
+    "timezone": "browser",
+    "refresh": "5s",
+    "schemaVersion": 38,
+    "panels": [
+      {
+        "id": 1,
+        "title": "Current Occupancy",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "rawSql": "SELECT COUNT(*) FILTER (WHERE state = 'occupied') as value FROM (SELECT DISTINCT ON (slot_id) slot_id, state FROM slot_states ORDER BY slot_id, ts_utc DESC) s",
+            "format": "table"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "percentage",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 70},
+                {"color": "red", "value": 90}
+              ]
+            },
+            "unit": "none"
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "textMode": "auto"
+        }
+      },
+      {
+        "id": 2,
+        "title": "Free Spaces",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "rawSql": "SELECT COUNT(*) FILTER (WHERE state = 'free') as value FROM (SELECT DISTINCT ON (slot_id) slot_id, state FROM slot_states ORDER BY slot_id, ts_utc DESC) s",
+            "format": "table"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "fixed", "fixedColor": "green"},
+            "unit": "none"
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "textMode": "auto"
+        }
+      },
+      {
+        "id": 3,
+        "title": "Total Slots",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "rawSql": "SELECT COUNT(DISTINCT slot_id) as value FROM slot_states",
+            "format": "table"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "fixed", "fixedColor": "blue"},
+            "unit": "none"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Occupancy Rate",
+        "type": "gauge",
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "rawSql": "SELECT (COUNT(*) FILTER (WHERE state = 'occupied')::float / NULLIF(COUNT(*)::float, 0) * 100) as value FROM (SELECT DISTINCT ON (slot_id) slot_id, state FROM slot_states ORDER BY slot_id, ts_utc DESC) s",
+            "format": "table"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 70},
+                {"color": "red", "value": 90}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Occupancy Over Time",
+        "type": "timeseries",
+        "gridPos": {"x": 0, "y": 4, "w": 24, "h": 8},
+        "targets": [
+          {
+            "rawSql": "SELECT date_trunc('minute', ts_utc) AS time, COUNT(*) FILTER (WHERE state = 'occupied') as occupied, COUNT(*) FILTER (WHERE state = 'free') as free FROM slot_states WHERE ts_utc > NOW() - INTERVAL '24 hours' GROUP BY 1 ORDER BY 1",
+            "format": "time_series"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "lineInterpolation": "smooth",
+              "fillOpacity": 20
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "occupied"},
+              "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}]
+            },
+            {
+              "matcher": {"id": "byName", "options": "free"},
+              "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "green"}}]
+            }
+          ]
+        }
+      },
+      {
+        "id": 6,
+        "title": "Node Health - CPU Temperature",
+        "type": "timeseries",
+        "gridPos": {"x": 0, "y": 12, "w": 12, "h": 6},
+        "targets": [
+          {
+            "rawSql": "SELECT ts_utc as time, cpu_temp_c FROM node_health WHERE ts_utc > NOW() - INTERVAL '1 hour' ORDER BY ts_utc",
+            "format": "time_series"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "celsius",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 60},
+                {"color": "red", "value": 75}
+              ]
+            },
+            "custom": {
+              "lineInterpolation": "smooth"
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "WiFi Signal Strength",
+        "type": "gauge",
+        "gridPos": {"x": 12, "y": 12, "w": 6, "h": 6},
+        "targets": [
+          {
+            "rawSql": "SELECT wifi_rssi_dbm as value FROM node_health ORDER BY ts_utc DESC LIMIT 1",
+            "format": "table"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "dBm",
+            "min": -100,
+            "max": -30,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": -100},
+                {"color": "yellow", "value": -70},
+                {"color": "green", "value": -50}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "CPU Usage",
+        "type": "gauge",
+        "gridPos": {"x": 18, "y": 12, "w": 6, "h": 6},
+        "targets": [
+          {
+            "rawSql": "SELECT cpu_percent as value FROM node_health ORDER BY ts_utc DESC LIMIT 1",
+            "format": "table"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 60},
+                {"color": "red", "value": 80}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Recent State Changes",
+        "type": "table",
+        "gridPos": {"x": 0, "y": 18, "w": 24, "h": 6},
+        "targets": [
+          {
+            "rawSql": "SELECT slot_id, state, confidence, ts_utc, dwell_s FROM slot_states ORDER BY ts_utc DESC LIMIT 20",
+            "format": "table"
+          }
+        ],
+        "fieldConfig": {
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "state"},
+              "properties": [
+                {
+                  "id": "mappings",
+                  "value": [
+                    {"options": {"occupied": {"color": "red", "text": "Occupied"}}, "type": "value"},
+                    {"options": {"free": {"color": "green", "text": "Free"}}, "type": "value"}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

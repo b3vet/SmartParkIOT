@@ -1,0 +1,32 @@
+[Unit]
+Description=SmartPark Health Monitoring Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/smartpark
+Environment=PATH=/home/pi/smartpark/venv/bin:/usr/local/bin:/usr/bin
+ExecStart=/home/pi/smartpark/venv/bin/python main.py --mode health
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Watchdog
+WatchdogSec=60
+NotifyAccess=all
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/home/pi/smartpark /var/log/smartpark
+
+# Resource limits
+MemoryMax=128M
+CPUQuota=20%
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,28 @@
+{
+  "node_id": "fass-edge-01",
+  "camera": {
+    "resolution": [1920, 1080],
+    "capture_interval": 1.5,
+    "jpeg_quality": 85,
+    "rotation": 0,
+    "flip_horizontal": false,
+    "flip_vertical": false
+  },
+  "server": {
+    "url": "http://YOUR_SERVER_IP:8000",
+    "timeout": 10.0,
+    "retry_attempts": 3
+  },
+  "mqtt": {
+    "host": "YOUR_SERVER_IP",
+    "port": 1883,
+    "keepalive": 60
+  },
+  "health": {
+    "report_interval": 15.0
+  },
+  "buffer": {
+    "max_size_mb": 100,
+    "replay_batch_size": 50
+  }
+}

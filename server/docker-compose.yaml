@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartpark-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://smartpark:${DB_PASSWORD}@postgres:5432/smartpark
+      - MQTT_HOST=mqtt
+      - MQTT_PORT=1883
+      - API_KEY=${API_KEY}
+      - MODEL_PATH=ml/yolov8l.pt
+      - INFERENCE_DEVICE=cpu
+      - SLOTS_CONFIG_PATH=calibration/fass_slots_v1.json
+    volumes:
+      - ./ml:/app/ml:ro
+      - frame_uploads:/app/uploads
+      - ./calibration:/app/calibration:ro
+    depends_on:
+      - postgres
+      - mqtt
+    # Uncomment for GPU support:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: smartpark-postgres
+    environment:
+      - POSTGRES_USER=smartpark
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=smartpark
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: smartpark-mqtt
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: smartpark-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./dashboard/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  mosquitto_data:
+  mosquitto_log:
+  grafana_data:
+  frame_uploads:
