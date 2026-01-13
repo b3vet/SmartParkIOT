@@ -7,7 +7,7 @@
   "inference": {
     "model_path": "yolov8m.pt",
     "device": "cpu",
-    "confidence_threshold": 0.5
+    "confidence_threshold": 0.1
   },
   "occupancy": {
     "slots_config_path": "calibration/fass_slots_v1.json",
