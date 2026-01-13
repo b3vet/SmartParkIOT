@@ -2,7 +2,7 @@
   "node_id": "fass-edge-01",
   "camera": {
     "resolution": [1920, 1080],
-    "capture_interval": 1.5,
+    "capture_interval": 5.0,
     "jpeg_quality": 85,
     "rotation": 0,
     "flip_horizontal": false,

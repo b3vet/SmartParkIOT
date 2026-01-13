@@ -1,0 +1,24 @@
+[Unit]
+Description=SmartPark Edge Node v2 - Local Inference
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/smartpark-v2/edge
+Environment=PATH=/home/pi/.local/bin:/usr/bin:/bin
+EnvironmentFile=/home/pi/smartpark-v2/.env
+ExecStart=/home/pi/.local/bin/python main.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Resource limits
+MemoryMax=2G
+CPUQuota=80%
+
+[Install]
+WantedBy=multi-user.target

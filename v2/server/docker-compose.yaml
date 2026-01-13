@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # SmartPark API v2 - Receives events from edge nodes
+  api-v2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartpark-api-v2
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql://smartpark:${DB_PASSWORD:-smartpark}@postgres-v2:5432/smartpark_v2
+      - MQTT_HOST=mqtt-v2
+      - MQTT_PORT=1883
+      - API_KEY=${API_KEY:-development-key}
+    depends_on:
+      postgres-v2:
+        condition: service_healthy
+      mqtt-v2:
+        condition: service_started
+    restart: unless-stopped
+    volumes:
+      - ./calibration:/app/calibration:ro
+    networks:
+      - smartpark-v2
+
+  # PostgreSQL Database - v2 namespace
+  postgres-v2:
+    image: postgres:15-alpine
+    container_name: smartpark-postgres-v2
+    environment:
+      - POSTGRES_USER=smartpark
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-smartpark}
+      - POSTGRES_DB=smartpark_v2
+    volumes:
+      - postgres_data_v2:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartpark -d smartpark_v2"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - smartpark-v2
+
+  # Mosquitto MQTT Broker - v2 namespace
+  mqtt-v2:
+    image: eclipse-mosquitto:2
+    container_name: smartpark-mqtt-v2
+    ports:
+      - "1884:1883"
+      - "9002:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config:ro
+      - mosquitto_data_v2:/mosquitto/data
+      - mosquitto_log_v2:/mosquitto/log
+    restart: unless-stopped
+    networks:
+      - smartpark-v2
+
+  # Grafana for visualization - v2 namespace
+  grafana-v2:
+    image: grafana/grafana:latest
+    container_name: smartpark-grafana-v2
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data_v2:/var/lib/grafana
+    depends_on:
+      - postgres-v2
+    restart: unless-stopped
+    networks:
+      - smartpark-v2
+
+volumes:
+  postgres_data_v2:
+  mosquitto_data_v2:
+  mosquitto_log_v2:
+  grafana_data_v2:
+
+networks:
+  smartpark-v2:
+    driver: bridge

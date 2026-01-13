@@ -1,5 +1,5 @@
 """
-Configuration handling service.
+Configuration handling service for edge node v2.
 Manages loading, validation, and hot-reloading of configuration.
 """
 
@@ -18,7 +18,23 @@ class CameraConfig:
     """Camera configuration."""
     resolution: tuple[int, int] = (1920, 1080)
     capture_interval: float = 5.0
-    jpeg_quality: int = 85
+
+
+@dataclass
+class InferenceConfig:
+    """Inference configuration."""
+    model_path: str = "yolov8m.pt"
+    device: str = "cpu"
+    confidence_threshold: float = 0.5
+
+
+@dataclass
+class OccupancyConfig:
+    """Occupancy processor configuration."""
+    slots_config_path: str = "calibration/fass_slots_v1.json"
+    debounce_seconds: float = 3.0
+    enter_threshold: float = 0.6
+    exit_threshold: float = 0.4
 
 
 @dataclass
@@ -44,7 +60,7 @@ class HealthConfig:
 @dataclass
 class BufferConfig:
     """Buffer configuration."""
-    db_path: str = "upload_buffer.db"
+    db_path: str = "stats_buffer.db"
     max_size_mb: int = 100
 
 
@@ -53,6 +69,8 @@ class AppConfig:
     """Complete application configuration."""
     node_id: str = "fass-edge-01"
     camera: CameraConfig = field(default_factory=CameraConfig)
+    inference: InferenceConfig = field(default_factory=InferenceConfig)
+    occupancy: OccupancyConfig = field(default_factory=OccupancyConfig)
     server: ServerConfig = field(default_factory=ServerConfig)
     mqtt: MQTTConfig = field(default_factory=MQTTConfig)
     health: HealthConfig = field(default_factory=HealthConfig)
@@ -91,6 +109,8 @@ class ConfigManager:
     def _parse_config(self, raw: Dict[str, Any]) -> AppConfig:
         """Parse raw config dictionary into AppConfig."""
         camera_raw = raw.get('camera', {})
+        inference_raw = raw.get('inference', {})
+        occupancy_raw = raw.get('occupancy', {})
         server_raw = raw.get('server', {})
         mqtt_raw = raw.get('mqtt', {})
         health_raw = raw.get('health', {})
@@ -100,8 +120,18 @@ class ConfigManager:
             node_id=raw.get('node_id', 'fass-edge-01'),
             camera=CameraConfig(
                 resolution=tuple(camera_raw.get('resolution', [1920, 1080])),
-                capture_interval=camera_raw.get('capture_interval', 1.5),
-                jpeg_quality=camera_raw.get('jpeg_quality', 85)
+                capture_interval=camera_raw.get('capture_interval', 5.0)
+            ),
+            inference=InferenceConfig(
+                model_path=inference_raw.get('model_path', 'yolov8m.pt'),
+                device=inference_raw.get('device', 'cpu'),
+                confidence_threshold=inference_raw.get('confidence_threshold', 0.5)
+            ),
+            occupancy=OccupancyConfig(
+                slots_config_path=occupancy_raw.get('slots_config_path', 'calibration/fass_slots_v1.json'),
+                debounce_seconds=occupancy_raw.get('debounce_seconds', 3.0),
+                enter_threshold=occupancy_raw.get('enter_threshold', 0.6),
+                exit_threshold=occupancy_raw.get('exit_threshold', 0.4)
             ),
             server=ServerConfig(
                 url=server_raw.get('url', 'http://localhost:8000'),
@@ -115,7 +145,7 @@ class ConfigManager:
                 report_interval=health_raw.get('report_interval', 15.0)
             ),
             buffer=BufferConfig(
-                db_path=buffer_raw.get('db_path', 'upload_buffer.db'),
+                db_path=buffer_raw.get('db_path', 'stats_buffer.db'),
                 max_size_mb=buffer_raw.get('max_size_mb', 100)
             )
         )
@@ -159,8 +189,18 @@ class ConfigManager:
             'node_id': config.node_id,
             'camera': {
                 'resolution': list(config.camera.resolution),
-                'capture_interval': config.camera.capture_interval,
-                'jpeg_quality': config.camera.jpeg_quality
+                'capture_interval': config.camera.capture_interval
+            },
+            'inference': {
+                'model_path': config.inference.model_path,
+                'device': config.inference.device,
+                'confidence_threshold': config.inference.confidence_threshold
+            },
+            'occupancy': {
+                'slots_config_path': config.occupancy.slots_config_path,
+                'debounce_seconds': config.occupancy.debounce_seconds,
+                'enter_threshold': config.occupancy.enter_threshold,
+                'exit_threshold': config.occupancy.exit_threshold
             },
             'server': {
                 'url': config.server.url,

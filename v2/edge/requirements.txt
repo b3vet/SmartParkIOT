@@ -1,0 +1,29 @@
+# SmartPark Edge Node v2 Dependencies
+# For Raspberry Pi with local YOLOv8m inference
+
+# Camera
+picamera2>=0.3.12
+
+# Image processing
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# Machine Learning (YOLOv8)
+ultralytics>=8.0.0
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Geometry for polygon operations
+shapely>=2.0.0
+
+# HTTP client
+requests>=2.31.0
+
+# MQTT
+paho-mqtt>=1.6.1
+
+# System monitoring
+psutil>=5.9.0
+
+# Environment
+python-dotenv>=1.0.0

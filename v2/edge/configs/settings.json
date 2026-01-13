@@ -1,0 +1,33 @@
+{
+  "node_id": "fass-edge-01",
+  "camera": {
+    "resolution": [1920, 1080],
+    "capture_interval": 5.0
+  },
+  "inference": {
+    "model_path": "yolov8m.pt",
+    "device": "cpu",
+    "confidence_threshold": 0.5
+  },
+  "occupancy": {
+    "slots_config_path": "calibration/fass_slots_v1.json",
+    "debounce_seconds": 3.0,
+    "enter_threshold": 0.6,
+    "exit_threshold": 0.4
+  },
+  "server": {
+    "url": "http://YOUR_SERVER_IP:8001",
+    "timeout": 10.0
+  },
+  "mqtt": {
+    "host": "YOUR_SERVER_IP",
+    "port": 1884
+  },
+  "health": {
+    "report_interval": 15.0
+  },
+  "buffer": {
+    "db_path": "stats_buffer.db",
+    "max_size_mb": 100
+  }
+}
