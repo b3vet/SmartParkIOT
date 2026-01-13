@@ -115,18 +115,42 @@ class InferenceEngine:
             'model_version': self._model_version
         }
 
-    def detect_from_array(self, frame_array: np.ndarray) -> Dict[str, Any]:
+    def detect_from_array(self, frame_array: np.ndarray, rotate_180: bool = True) -> Dict[str, Any]:
         """
         Detect vehicles directly from numpy array.
 
         Args:
             frame_array: Numpy array (RGB format)
+            rotate_180: If True, rotate image 180° before inference for upside-down cameras
 
         Returns:
-            Same as detect_vehicles
+            Same as detect_vehicles, with coordinates transformed back if rotated
         """
         image = Image.fromarray(frame_array)
-        return self.detect_vehicles(image)
+
+        if rotate_180:
+            # Rotate 180° so model sees right-side-up vehicles
+            image_for_inference = image.rotate(180)
+            result = self.detect_vehicles(image_for_inference)
+
+            # Transform detection coordinates back to original upside-down frame
+            img_width, img_height = image.size
+            for det in result['detections']:
+                # Flip coordinates: new = image_size - old
+                det['center']['x'] = img_width - det['center']['x']
+                det['center']['y'] = img_height - det['center']['y']
+
+                # Flip bbox (and swap x1/x2, y1/y2 since they reverse)
+                old_x1, old_y1 = det['bbox']['x1'], det['bbox']['y1']
+                old_x2, old_y2 = det['bbox']['x2'], det['bbox']['y2']
+                det['bbox']['x1'] = img_width - old_x2
+                det['bbox']['y1'] = img_height - old_y2
+                det['bbox']['x2'] = img_width - old_x1
+                det['bbox']['y2'] = img_height - old_y1
+
+            return result
+        else:
+            return self.detect_vehicles(image)
 
     def get_model_info(self) -> Dict[str, Any]:
         """Get model information."""
