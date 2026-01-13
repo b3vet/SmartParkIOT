@@ -3,6 +3,7 @@ Event receiver endpoints for SmartPark v2.
 Receives processed events from edge nodes.
 """
 
+import json
 import logging
 from datetime import datetime
 from typing import Optional
@@ -48,6 +49,9 @@ async def receive_slot_events(
     This endpoint receives processed occupancy events that were detected
     by the edge node's local inference.
     """
+    # Demo: Log raw JSON payload
+    logger.info(f"\n{'='*60}\n[SLOT EVENTS]\n{json.dumps(data.model_dump(), indent=2)}\n{'='*60}")
+
     events_stored = 0
 
     for event in data.events:
@@ -107,6 +111,9 @@ async def receive_summary(
     """
     Receive parking lot summary from edge node.
     """
+    # Demo: Log raw JSON payload
+    logger.info(f"\n{'='*60}\n[SUMMARY]\n{json.dumps(data.model_dump(), indent=2)}\n{'='*60}")
+
     try:
         # Parse timestamp
         ts_utc = datetime.fromisoformat(data.summary.ts_utc.replace('Z', '+00:00'))
@@ -153,6 +160,9 @@ async def receive_health(
     """
     Receive health telemetry from edge node.
     """
+    # Demo: Log raw JSON payload
+    logger.info(f"\n{'='*60}\n[HEALTH]\n{json.dumps(data.model_dump(), indent=2)}\n{'='*60}")
+
     try:
         # Parse timestamp
         ts_utc = datetime.fromisoformat(data.ts_utc.replace('Z', '+00:00'))
@@ -201,6 +211,9 @@ async def receive_processing_log(
     """
     Receive processing log entry from edge node.
     """
+    # Demo: Log raw JSON payload
+    logger.info(f"\n{'='*60}\n[PROCESSING LOG]\n{json.dumps(data.model_dump(), indent=2)}\n{'='*60}")
+
     try:
         # Parse timestamp
         timestamp = datetime.fromisoformat(data.timestamp.replace('Z', '+00:00'))
