@@ -36,18 +36,20 @@ class OccupancyProcessor:
         slots_config_path: str,
         debounce_seconds: float = 3.0,
         enter_threshold: float = 0.6,
-        exit_threshold: float = 0.4
+        exit_threshold: float = 0.4,
+        capture_resolution: tuple = (1920, 1080)
     ):
         self.debounce_seconds = debounce_seconds
         self.enter_threshold = enter_threshold
         self.exit_threshold = exit_threshold
+        self.capture_resolution = capture_resolution
 
         self.slots: Dict[str, SlotState] = {}
         self._load_slots(slots_config_path)
         self._roi_version = "v1"
 
     def _load_slots(self, config_path: str):
-        """Load slot definitions from JSON file."""
+        """Load slot definitions from JSON file and scale to capture resolution."""
         try:
             path = Path(config_path)
             if not path.exists():
@@ -59,10 +61,23 @@ class OccupancyProcessor:
 
             self._roi_version = config.get('roi_version', 'v1')
 
+            # Get original image size from config and calculate scale factors
+            original_size = config.get('image_size', self.capture_resolution)
+            scale_x = self.capture_resolution[0] / original_size[0]
+            scale_y = self.capture_resolution[1] / original_size[1]
+
+            logger.info(f"Scaling polygons from {original_size} to {self.capture_resolution} "
+                       f"(scale: {scale_x:.3f}, {scale_y:.3f})")
+
             for slot_def in config.get('slots', []):
                 slot_id = slot_def['slot_id']
                 points = slot_def['poly']
-                polygon = Polygon(points)
+
+                # Scale polygon points to match capture resolution
+                scaled_points = [
+                    (p[0] * scale_x, p[1] * scale_y) for p in points
+                ]
+                polygon = Polygon(scaled_points)
 
                 self.slots[slot_id] = SlotState(
                     slot_id=slot_id,

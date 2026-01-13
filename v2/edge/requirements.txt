@@ -1,17 +1,13 @@
 # SmartPark Edge Node v2 Dependencies
 # For Raspberry Pi with local YOLOv8m inference
-
-# Camera
-picamera2>=0.3.12
-
-# Image processing
-Pillow>=10.0.0
-numpy>=1.24.0
+#
+# NOTE: Use venv with --system-site-packages to access picamera2/libcamera
+# python3 -m venv --system-site-packages venv
+#
+# Do NOT install picamera2, numpy, or PIL via pip - use system versions
 
 # Machine Learning (YOLOv8)
 ultralytics>=8.0.0
-torch>=2.0.0
-torchvision>=0.15.0
 
 # Geometry for polygon operations
 shapely>=2.0.0

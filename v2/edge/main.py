@@ -63,12 +63,13 @@ class SmartParkEdgeV2:
             confidence_threshold=self.config.inference.confidence_threshold
         )
 
-        # Occupancy processor
+        # Occupancy processor (pass capture resolution for polygon scaling)
         self.occupancy = OccupancyProcessor(
             slots_config_path=self.config.occupancy.slots_config_path,
             debounce_seconds=self.config.occupancy.debounce_seconds,
             enter_threshold=self.config.occupancy.enter_threshold,
-            exit_threshold=self.config.occupancy.exit_threshold
+            exit_threshold=self.config.occupancy.exit_threshold,
+            capture_resolution=tuple(self.config.camera.resolution)
         )
 
         # Stats sender (replaces image uploader)
@@ -187,6 +188,7 @@ class SmartParkEdgeV2:
                 # Send summary periodically (every frame for now)
                 summary = self.occupancy.get_summary()
                 self.mqtt.publish_summary(summary)
+                self.stats_sender.send_summary(summary)  # Also send to server via HTTP
 
                 # Send processing log to server
                 self.stats_sender.send_processing_log(
