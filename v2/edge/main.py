@@ -166,6 +166,13 @@ class SmartParkEdgeV2:
                 detections = inference_result['detections']
                 inference_time_ms = inference_result['inference_time_ms']
 
+                # Debug: Log detection details
+                logger.info(f"Frame {frame_id}: Detected {len(detections)} vehicles in {inference_time_ms:.0f}ms")
+                for i, det in enumerate(detections):
+                    logger.info(f"  Vehicle {i+1}: {det['class_name']} at center ({det['center']['x']:.0f}, {det['center']['y']:.0f}), "
+                               f"bbox=({det['bbox']['x1']:.0f},{det['bbox']['y1']:.0f})-({det['bbox']['x2']:.0f},{det['bbox']['y2']:.0f}), "
+                               f"conf={det['confidence']:.2f}")
+
                 # Process detections through occupancy processor
                 events = self.occupancy.process_detections(detections, timestamp)
 

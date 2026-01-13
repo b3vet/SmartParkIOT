@@ -84,6 +84,10 @@ class OccupancyProcessor:
                     polygon=polygon
                 )
 
+                # Debug: Log scaled polygon bounds
+                bounds = polygon.bounds  # (minx, miny, maxx, maxy)
+                logger.info(f"  Slot {slot_id}: bounds=({bounds[0]:.0f},{bounds[1]:.0f})-({bounds[2]:.0f},{bounds[3]:.0f})")
+
             logger.info(f"Loaded {len(self.slots)} slots from {config_path}")
         except Exception as e:
             logger.error(f"Failed to load slots config: {e}")
@@ -112,6 +116,7 @@ class OccupancyProcessor:
 
         for detection in detections:
             center = Point(detection['center']['x'], detection['center']['y'])
+            matched_slot = None
 
             for slot_id, slot_state in self.slots.items():
                 if slot_state.polygon.contains(center):
@@ -120,6 +125,14 @@ class OccupancyProcessor:
                         slot_confidence[slot_id],
                         detection['confidence']
                     )
+                    matched_slot = slot_id
+                    break  # A vehicle can only be in one slot
+
+            # Debug: Log which slot the detection matched (or none)
+            if matched_slot:
+                logger.info(f"  Detection at ({detection['center']['x']:.0f},{detection['center']['y']:.0f}) -> {matched_slot}")
+            else:
+                logger.info(f"  Detection at ({detection['center']['x']:.0f},{detection['center']['y']:.0f}) -> NO SLOT MATCH")
 
         # Update slot states with debouncing
         for slot_id, is_occupied in slot_occupancy.items():
